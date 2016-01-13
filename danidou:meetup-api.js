@@ -1,24 +1,17 @@
 _.extend(Meetup, {
   server: 'https://api.meetup.com',
 
-  _getAccessToken: function(options) {
+  _getApiKey: function(options) {
     options = options || {};
 
-    var currentInvocation = DDP._CurrentInvocation.get();
-    if (!options.user && currentInvocation) {
-      options.user = Meteor.user();
-    }
-
-    if (!options.user
-      || !options.user.services
-      || !options.user.services.meetup
-      || !options.user.services.meetup.accessToken) {
-      Log.warn('Missing user or accessToken for user');
+    if (!Meteor.settings.meetupApi) {
+      Log.warn('Missing API key in settings.js');
       return {};
     }
 
     return {
-      access_token: options.user.services.meetup.accessToken
+      key: Meteor.settings.meetupApi, 
+      signed: true
     }
   },
 
@@ -37,7 +30,7 @@ _.extend(Meetup, {
       });
     }
 
-    params = _.extend(params || {}, this._getAccessToken(options));
+    params = _.extend(params || {}, this._getApiKey(options));
 
     try {
       var result = HTTP.call(method, url, {
